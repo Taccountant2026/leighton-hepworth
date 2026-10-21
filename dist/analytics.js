@@ -6,12 +6,6 @@
   const choiceLifetime = 180 * 24 * 60 * 60 * 1000;
   const production = location.protocol === 'https:' &&
     ['leightonhepworth.com', 'www.leightonhepworth.com'].includes(location.hostname);
-  const banner = document.querySelector('#cookie-banner');
-  const status = document.querySelector('#cookie-status');
-  if (!banner) return;
-
-  let loaded = false;
-  let launcher = null;
 
   function readChoice() {
     try {
@@ -19,18 +13,15 @@
       if (saved && ['granted', 'denied'].includes(saved.choice) &&
           Number.isFinite(saved.expires) && saved.expires > Date.now()) return saved.choice;
       localStorage.removeItem(storageKey);
-    } catch { /* A blocked preference store leaves analytics off until chosen. */ }
+    } catch { /* A blocked preference store leaves analytics cookies off until chosen. */ }
     return null;
   }
 
-  function saveChoice(choice) {
+  function saveChoice(nextChoice) {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({choice, expires: Date.now() + choiceLifetime}));
+      localStorage.setItem(storageKey, JSON.stringify({choice: nextChoice, expires: Date.now() + choiceLifetime}));
     } catch { /* The current visit can still honour an explicit choice. */ }
   }
-
-  let choice = readChoice();
-  window['ga-disable-' + measurementId] = choice !== 'granted';
 
   function removeAnalyticsCookies() {
     const names = ['_ga', '_ga_' + measurementId.slice(2)];
@@ -44,20 +35,22 @@
     }
   }
 
-  function startAnalytics() {
-    if (!production || choice !== 'granted' || loaded) return;
-    loaded = true;
-    window['ga-disable-' + measurementId] = false;
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-    window.gtag('consent', 'default', {
-      analytics_storage: 'denied', ad_storage: 'denied',
-      ad_user_data: 'denied', ad_personalization: 'denied'
-    });
-    window.gtag('consent', 'update', {
-      analytics_storage: 'granted', ad_storage: 'denied',
-      ad_user_data: 'denied', ad_personalization: 'denied'
-    });
+  let choice = readChoice();
+  let tagState = 'loading';
+  let renderStatus = () => {};
+  const consent = () => ({
+    analytics_storage: production && choice === 'granted' ? 'granted' : 'denied',
+    ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied'
+  });
+
+  // This file runs synchronously before the standard async Google tag in <head>.
+  // Register consent before config, so a new visit cannot create analytics cookies.
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  window['ga-disable-' + measurementId] = !production;
+  window.gtag('consent', 'default', consent());
+  if (choice !== 'granted') removeAnalyticsCookies();
+  if (production) {
     window.gtag('js', new Date());
     window.gtag('config', measurementId, {
       allow_google_signals: false,
@@ -65,49 +58,79 @@
       cookie_expires: 90 * 24 * 60 * 60,
       cookie_flags: 'SameSite=Lax;Secure'
     });
-    const script = document.createElement('script');
-    script.id = 'lh-google-analytics';
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
-    document.head.append(script);
   }
 
-  function applyChoice(nextChoice, persist) {
-    const wasLoaded = loaded;
-    choice = nextChoice;
-    if (persist) saveChoice(choice);
-    window['ga-disable-' + measurementId] = choice !== 'granted';
-    banner.hidden = choice !== null;
-    if (choice === 'granted') {
-      startAnalytics();
-      if (status) status.textContent = 'Analytics accepted. You can change this in Cookie settings.';
-    } else {
-      removeAnalyticsCookies();
-      if (status) status.textContent = choice === 'denied' ? 'Analytics declined.' : 'Choose whether to allow analytics.';
-      // Reload after withdrawal so previously loaded Google code is removed too.
-      if (wasLoaded) location.reload();
-    }
-    if (banner.hidden && launcher) {
-      launcher.focus({preventScroll: true});
-      launcher = null;
-    }
+  // Capture the parser-inserted tag's result, including a fast cached response.
+  for (const type of ['load', 'error']) {
+    document.addEventListener(type, event => {
+      if (event.target?.id !== 'lh-google-analytics') return;
+      tagState = type === 'load' ? 'loaded' : 'error';
+      renderStatus();
+    }, true);
   }
 
-  for (const button of document.querySelectorAll('[data-analytics-choice]')) {
-    button.addEventListener('click', () => applyChoice(button.dataset.analyticsChoice, true));
-  }
-  for (const button of document.querySelectorAll('[data-cookie-settings]')) {
-    button.addEventListener('click', () => {
-      launcher = button;
-      banner.hidden = false;
-      document.querySelector('#cookie-title')?.focus({preventScroll: true});
+  function initialiseChoiceControls() {
+    const banner = document.querySelector('#cookie-banner');
+    if (!banner) return;
+    const status = document.querySelector('#cookie-status');
+    const loadStatus = document.querySelector('#analytics-load-status');
+    const retry = document.querySelector('[data-analytics-retry]');
+    let launcher = null;
+
+    renderStatus = () => {
+      if (loadStatus) loadStatus.textContent = (!production ? 'Analytics measurement is disabled on this preview. ' : '') + (
+        tagState === 'loaded' ? 'Google tag loaded.' :
+        tagState === 'error' ? 'Google Analytics could not load in this browser. A content blocker or connection problem may be preventing it. Your cookie choice is saved.' :
+        'Google tag is loading…');
+      if (retry) retry.hidden = !production || tagState !== 'error';
+    };
+
+    function applyChoice(nextChoice, persist) {
+      choice = nextChoice;
+      if (persist) saveChoice(choice);
+      if (production) window.gtag('consent', 'update', consent());
+      if (choice !== 'granted') removeAnalyticsCookies();
+      banner.hidden = choice !== null;
+      if (status) status.textContent = choice === 'granted' ? 'Analytics cookies accepted. You can change this in Cookie settings.' :
+        choice === 'denied' ? 'Analytics cookies declined.' : 'Choose whether to allow analytics cookies.';
+      if (banner.hidden && launcher) {
+        launcher.focus({preventScroll: true});
+        launcher = null;
+      }
+      renderStatus();
+    }
+
+    for (const button of document.querySelectorAll('[data-analytics-choice]')) {
+      button.addEventListener('click', () => applyChoice(button.dataset.analyticsChoice, true));
+    }
+    for (const button of document.querySelectorAll('[data-cookie-settings]')) {
+      button.addEventListener('click', () => {
+        launcher = button;
+        banner.hidden = false;
+        renderStatus();
+        document.querySelector('#cookie-title')?.focus({preventScroll: true});
+      });
+    }
+    retry?.addEventListener('click', () => {
+      if (!production || tagState !== 'error') return;
+      tagState = 'loading';
+      renderStatus();
+      document.querySelector('#lh-google-analytics')?.remove();
+      const script = document.createElement('script');
+      script.id = 'lh-google-analytics';
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+      document.head.append(script);
     });
-  }
-  window.addEventListener('storage', event => {
-    if (event.key === storageKey || event.key === null) applyChoice(readChoice(), false);
-  });
+    window.addEventListener('storage', event => {
+      if (event.key === storageKey || event.key === null) applyChoice(readChoice(), false);
+    });
 
-  banner.hidden = choice !== null;
-  if (choice === 'granted') startAnalytics();
-  else removeAnalyticsCookies();
+    banner.hidden = choice !== null;
+    renderStatus();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialiseChoiceControls, {once: true});
+  } else initialiseChoiceControls();
 })();

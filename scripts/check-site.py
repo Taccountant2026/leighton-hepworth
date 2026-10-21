@@ -25,9 +25,14 @@ pages={p:Page(p) for p in DIST.glob('*.html')}
 count=0
 for path,page in pages.items():
  assert page.headings==1 and page.title==1,'one h1 and title required: '+path.name
- content=path.read_text();assert content.count('src="/analytics.js?v=20261021"')==1,'analytics consent module must load once: '+path.name
+ content=path.read_text();assert content.count('src="/analytics.js?v=20261021-tag-fix"')==1,'analytics consent bootstrap must load once: '+path.name
  assert 'content="G-80ZJ15H2XX"' in content and 'data-cookie-settings' in content and 'cookie-banner' in page.ids,'missing analytics choice controls: '+path.name
- assert 'googletagmanager.com/gtag/js' not in content,'Google tag must remain behind consent'
+ assert content.count('https://www.googletagmanager.com/gtag/js?id=G-80ZJ15H2XX')==1,'one standard Google tag required: '+path.name
+ bootstrap=content.index('src="/analytics.js?v=20261021-tag-fix"')
+ tag=content.index('id="lh-google-analytics"')
+ assert content.index('<head>')<bootstrap<tag<content.index('</head>'),'consent must precede the async Google tag in head'
+ assert 'defer' not in content[bootstrap:content.index('</script>',bootstrap)],'consent defaults must run before Google'
+ assert 'analytics-load-status' in page.ids and 'data-analytics-retry' in content,'missing tag loading feedback'
  for label in page.labels:assert label in page.ids,'missing form label target'
  for ref in page.refs:
   url=urlsplit(urljoin(BASE+path.name,ref))

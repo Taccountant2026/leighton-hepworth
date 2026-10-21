@@ -7,7 +7,7 @@ An independent, buildless static website for `leightonhepworth.com`, using the a
 - `dist/index.html`: personal profile, businesses, project workbench, studies and contact routing.
 - `dist/styles.css`: responsive navy, champagne-gold and ivory identity.
 - `dist/app.js`: accessible mobile navigation, project filters, project-note dialogs, contact routing and copy-link button.
-- `dist/analytics.js`: this website's GA4 measurement ID `G-80ZJ15H2XX`, with basic consent mode and a first-party cookie choice.
+- `dist/analytics.js`: this website's GA4 measurement ID `G-80ZJ15H2XX`, with consent defaults and a first-party cookie choice.
 - `dist/assets/`: independently stored approved logo assets and local Inter font files; font licence included.
 - `.openai/hosting.json`: this site's separate native hosting identity.
 
@@ -15,9 +15,9 @@ The other businesses appear only as portfolio content and ordinary outbound link
 
 ## Analytics
 
-The LH site has its own supplied measurement ID, `G-80ZJ15H2XX`. Google Analytics loads only after analytics consent, and only on the HTTPS apex and `www` domain. Preview and hosting-alias visits do not load it. Advertising storage, advertising user data, ad personalisation and Google signals are disabled.
+The LH site has its own supplied measurement ID, `G-80ZJ15H2XX`. Every page has the standard async Google tag in its head. A synchronous bootstrap runs before it and registers consent defaults before the single GA4 config call. Measurement is configured only on the HTTPS apex and `www` domain; preview and hosting-alias visits have measurement disabled. Advertising storage, advertising user data, ad personalisation and Google signals are disabled.
 
-Accept and decline have equal prominence. Visitors can reopen Cookie settings on every page, including Privacy. Choices are stored for 180 days in the browser; analytics cookies are configured for 90 days. Withdrawal disables this ID, removes its first-party cookies and reloads the page without loading Google Analytics. The consent tests cover first visits, saved choices, storage failures, withdrawal, tab changes and the preview-host guard.
+Google consent mode starts with analytics storage denied unless the visitor has a valid saved grant. In this state Google may send measurements without cookies; accepting allows analytics cookies. Accept and decline have equal prominence. Visitors can reopen Cookie settings on every page, including Privacy. Choices are stored for 180 days in the browser; analytics cookies are configured for 90 days. Withdrawal immediately updates consent and removes first-party analytics cookies. The banner reports whether the Google tag loaded and offers a retry after a loading error. This status verifies script loading, not receipt in the Analytics account. Tests cover bootstrap ordering, first visits, saved choices, storage failures, withdrawal, tab changes, tag failures and the preview-host guard.
 
 To confirm receipt in the Analytics account, open its Realtime report, visit the public domain and accept analytics. Account-side receipt is a separate check from installing and publishing the tag.
 
