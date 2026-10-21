@@ -16,6 +16,8 @@ The other businesses appear only as portfolio content and ordinary outbound link
 
 Run `npm run check` with Node 22+ and Python 3. There are no dependencies to install and no build step. Source and deployed static files are identical.
 
+Run these checks locally before each upload or publication. This project has no active GitHub Actions workflow: uploads do not start GitHub-hosted runners, use Actions minutes or create Actions artifacts. GitHub stores the source; the existing Sites hosting publishes the website independently. No GitHub upgrade is required for this workflow. This setup does not change any existing account subscription or billing balance.
+
 ## Publication
 
 The first version is private, with noindex metadata and a disallow-all robots file. The registered domain is `leightonhepworth.com`. DNS records must match the actual records returned by the Sites domain tool. Registration of a domain does not itself connect it to hosting.
