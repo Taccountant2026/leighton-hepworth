@@ -1,1 +1,1 @@
-{"name":"leighton-hepworth-personal-website","version":"1.0.0","private":true,"type":"module","scripts":{"check":"node --check dist/app.js && python3 scripts/check-site.py"}}
+{"name":"leighton-hepworth-personal-website","version":"1.0.0","private":true,"type":"module","scripts":{"check":"node --check dist/app.js && node --check dist/analytics.js && node --test scripts/analytics-consent.test.cjs && python3 scripts/check-site.py"}}

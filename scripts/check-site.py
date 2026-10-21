@@ -25,6 +25,9 @@ pages={p:Page(p) for p in DIST.glob('*.html')}
 count=0
 for path,page in pages.items():
  assert page.headings==1 and page.title==1,'one h1 and title required: '+path.name
+ content=path.read_text();assert content.count('src="/analytics.js?v=20261021"')==1,'analytics consent module must load once: '+path.name
+ assert 'content="G-80ZJ15H2XX"' in content and 'data-cookie-settings' in content and 'cookie-banner' in page.ids,'missing analytics choice controls: '+path.name
+ assert 'googletagmanager.com/gtag/js' not in content,'Google tag must remain behind consent'
  for label in page.labels:assert label in page.ids,'missing form label target'
  for ref in page.refs:
   url=urlsplit(urljoin(BASE+path.name,ref))
@@ -41,4 +44,4 @@ robots=(DIST/'robots.txt').read_text();assert 'Disallow: /' not in robots;assert
 sitemap=ET.parse(DIST/'sitemap.xml').getroot();urls=[node.text for node in sitemap.iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')]
 assert set(urls)=={BASE,BASE+'privacy.html'},'sitemap must contain the public canonical pages'
 assert not list((ROOT/'.github/workflows').glob('*.y*ml')),'unexpected automatic GitHub Actions workflow'
-print(f'Checked {len(pages)} pages, {count} local links/assets, image alternatives, form labels, anchors, public crawl settings, sitemap, LH identity and project independence.')
+print(f'Checked {len(pages)} pages, {count} local links/assets, image alternatives, form labels, anchors, analytics choice controls, public crawl settings, sitemap, LH identity and project independence.')
