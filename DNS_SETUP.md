@@ -2,7 +2,7 @@
 
 The first LH website is published privately at https://leighton-hepworth.taccountant.chatgpt.site. Its separate hosting project is `appgprj_6ad8bd88eda08191920af743b641c3b2`.
 
-Custom domain status: active. Sites confirmed both `leightonhepworth.com` and `www.leightonhepworth.com` are connected, with HTTPS active, on 21 October 2026. The website remains private for owner review.
+Custom domain status: active. Sites confirmed both `leightonhepworth.com` and `www.leightonhepworth.com` are connected, with HTTPS active, on 21 October 2026. The owner has authorised public publication of the personal website.
 
 The supplied screenshot confirms the domain is managed through Namecheap. In Domain List → Manage → Advanced DNS → Host Records, use the records below with Automatic TTL. Namecheap adds the domain suffix, so enter the short Host values shown.
 
@@ -24,7 +24,7 @@ The screenshot shows an `autodiscover` CNAME pointing to `autodiscover.outlook.c
 
 These website records are now verified. If changing them later, replace conflicting website A/AAAA/CNAME records only at the hostnames being connected, then refresh custom-domain status in Sites. Preserve the existing email records.
 
-The LH website remains private for review. Public access and search indexing are separate release decisions.
+The LH website is prepared for public access and search crawling. Search-engine indexing is decided by the search engines and is not guaranteed by successful DNS verification.
 
 ## Dedicated GitHub source
 

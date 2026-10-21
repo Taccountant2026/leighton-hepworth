@@ -20,7 +20,9 @@ Run these checks locally before each upload or publication. This project has no 
 
 ## Publication
 
-The first version is private, with noindex metadata and a disallow-all robots file. The registered domain is `leightonhepworth.com`. DNS records must match the actual records returned by the Sites domain tool. Registration of a domain does not itself connect it to hosting.
+Public website: https://leightonhepworth.com/. Both the apex and `www` domain have verified DNS and active HTTPS. This release includes indexable page metadata, social previews, a sitemap and a crawlable robots file. Search engines decide when to index a public site; a sitemap is not proof of indexing.
+
+Website audience is managed in Sites. The GitHub source repository remains private and independent. The root `CNAME` file added on GitHub is retained; the deployed website uses the `dist/` directory and the separately connected Sites domains.
 
 Dedicated GitHub source: https://github.com/Taccountant2026/leighton-hepworth (private).
 

@@ -8,3 +8,14 @@
 
 /* The header uses the approved LH monogram from the full logo artwork. */
 .brand .brand-crop{height:43px}
+
+/* Comfortable reading and touch controls across the finished site. */
+:root{--gold:#8c682a}
+.hero-intro{font-size:15px}
+.about-copy p:not(.lead),.venture-description>p:last-child,.project-text p,.learning-grid>div:first-child>p:not(.eyebrow),.learning-notes p:not(.eyebrow),.contact-section>div:first-child>p:not(.eyebrow),.contact-router>p{font-size:14px;line-height:1.85}
+.section-heading>p,.contact-router select{font-size:13px}
+.project-status{font-size:9px}
+.document p{font-size:15px}
+.filters button,.menu-toggle{min-height:44px}
+.footer-bottom{font-size:11px}
+@media(max-width:760px){.hero-intro{font-size:14px}.contact-router{padding:24px}.footer-bottom>div{gap:18px;flex-wrap:wrap}}

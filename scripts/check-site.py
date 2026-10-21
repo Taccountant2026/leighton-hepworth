@@ -3,6 +3,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit, unquote
 import json
+import xml.etree.ElementTree as ET
 
 ROOT=Path(__file__).resolve().parent.parent
 DIST=ROOT/'dist'
@@ -35,5 +36,9 @@ for path,page in pages.items():
   count+=1
 manifest=json.loads((ROOT/'.openai/hosting.json').read_text());assert manifest['project_id']=='appgprj_6ad8bd88eda08191920af743b641c3b2';assert manifest['static']['directory']=='dist'
 js=(DIST/'app.js').read_text();assert 'fetch(' not in js and 'localStorage' not in js,'unexpected external data or persistent state'
-home=(DIST/'index.html').read_text();assert 'assets/lh-business-group.png' in home;assert 'noindex,nofollow' in home
-print(f'Checked {len(pages)} pages, {count} local links/assets, image alternatives, form labels, anchors, LH identity and project independence.')
+home=(DIST/'index.html').read_text();assert 'assets/lh-business-group.png' in home;assert 'content="index,follow' in home and 'noindex' not in home
+robots=(DIST/'robots.txt').read_text();assert 'Disallow: /' not in robots;assert 'Sitemap: '+BASE+'sitemap.xml' in robots
+sitemap=ET.parse(DIST/'sitemap.xml').getroot();urls=[node.text for node in sitemap.iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')]
+assert set(urls)=={BASE,BASE+'privacy.html'},'sitemap must contain the public canonical pages'
+assert not list((ROOT/'.github/workflows').glob('*.y*ml')),'unexpected automatic GitHub Actions workflow'
+print(f'Checked {len(pages)} pages, {count} local links/assets, image alternatives, form labels, anchors, public crawl settings, sitemap, LH identity and project independence.')
