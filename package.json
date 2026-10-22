@@ -1,1 +1,12 @@
-{"name":"leighton-hepworth-personal-website","version":"1.0.0","private":true,"type":"module","scripts":{"check":"node --check dist/app.js && node --check dist/analytics.js && node --test scripts/analytics-consent.test.cjs && python3 scripts/check-site.py"}}
+{
+  "name": "leighton-hepworth-personal-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1 <27"
+  },
+  "scripts": {
+    "check": "node scripts/check-node-version.mjs && node --check dist/app.js && node --check dist/analytics.js && node --test scripts/analytics-consent.test.cjs && python3 scripts/check-site.py"
+  }
+}
