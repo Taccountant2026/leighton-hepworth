@@ -48,5 +48,9 @@ home=(DIST/'index.html').read_text();assert 'assets/lh-business-group.png' in ho
 robots=(DIST/'robots.txt').read_text();assert 'Disallow: /' not in robots;assert 'Sitemap: '+BASE+'sitemap.xml' in robots
 sitemap=ET.parse(DIST/'sitemap.xml').getroot();urls=[node.text for node in sitemap.iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')]
 assert set(urls)=={BASE,BASE+'privacy.html'},'sitemap must contain the public canonical pages'
-assert not list((ROOT/'.github/workflows').glob('*.y*ml')),'unexpected automatic GitHub Actions workflow'
+workflows=list((ROOT/'.github/workflows').glob('*.y*ml'))
+assert {p.name for p in workflows} == {'ci.yml'}, 'unexpected automatic GitHub Actions workflow'
+ci=(ROOT/'.github/workflows/ci.yml').read_text()
+assert 'contents: read' in ci and 'npm run check' in ci, 'CI must validate with read-only repository permissions'
+assert not any(marker in ci for marker in ('pages: write', 'id-token: write', 'workflow_run:', 'pull_request_target:', 'secrets.', 'deploy-pages', 'wrangler', 'curl ', 'wget ')), 'validation workflow must not deploy or access secrets'
 print(f'Checked {len(pages)} pages, {count} local links/assets, image alternatives, form labels, anchors, analytics choice controls, public crawl settings, sitemap, LH identity and project independence.')
